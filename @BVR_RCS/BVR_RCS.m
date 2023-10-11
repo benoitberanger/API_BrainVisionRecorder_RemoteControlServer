@@ -1,8 +1,9 @@
 classdef BVR_RCS < handle
     
-    properties(GetAccess=public, SetAccess=protected)
-        recorderip (1,:) char
-        port       (1,1) double
+    properties(GetAccess=protected, SetAccess=protected)
+        recorderip (1,:) char                                              % ex : '192.168.10.11'
+        port       (1,1) double                                            % ex : 6700
+        timeout    (1,1) double = 1.0;                                     % in seconds
         
         con        (1,1) double = -1
     end % props
@@ -29,28 +30,38 @@ classdef BVR_RCS < handle
         end
         
         %------------------------------------------------------------------
+        % set / get
         function setRecorderIP(self, value)
             assert(nargin==2 && ischar(value) && length(value)>1)
             self.recorderip = value;
         end
         function value = getRecorderIP(self); value = self.recorderip; end
         
-        %------------------------------------------------------------------
         function setPort(self, value)
             assert(nargin==2 && isnumeric(value) && isscalar(value))
             self.port = value;
         end
         function value = getPort(self); value = self.port; end
         
+        function setTimeout(self, value)
+            assert(nargin==2 && isnumeric(value) && isscalar(value))
+            self.timeout = value;
+        end
+        function value = getTimeout(self); value = self.timeout; end
+        
         %------------------------------------------------------------------
         function [statusID, statusMSG] = tcpConnect(self)
             self.log(sprintf('tcpConnect : trying to connect...'))
+            
             self.con = pnet('tcpconnect', self.recorderip, self.port);
+            pnet(self.con,'setreadtimeout' ,self.timeout);
+            pnet(self.con,'setwritetimeout',self.timeout);
+            
             [statusID, statusMSG] = self.getStatus();
             if statusID > 0
                 self.log(sprintf('tcpConnect : connected to %s:%p', self.recorderip, self.port))
             else
-                self.log(sprintf('tcpConnect : not connected'))
+                self.error(sprintf('tcpConnect : not connected'))
             end
         end
         
@@ -73,9 +84,33 @@ classdef BVR_RCS < handle
             self.con = -1;
         end
         
+        %------------------------------------------------------------------
+        function sendMonitoring(self)
+            cmd = 'M';
+            ret = 'M:OK';
+            
+            self.sendMessage(cmd, ret);
+        end
+        
     end % meths
     
     methods(Access=protected)
+        
+        function sendMessage(self, cmd, ret)
+            
+            % write
+            self.log(sprintf('sendMessage -> %s', cmd))
+            pnet(self.con, 'write', sprintf('%s\r',cmd))
+            
+            % read
+            data = pnet(self.con, 'read', length(ret)+1);
+            if strcmp(data(1:end-1), ret)
+                self.log(sprintf('sendMessage <- %s', ret))
+            else
+                self.error(sprintf('sendMessage TIMEOUT'))
+            end
+            
+        end
         
     end % meths
     
@@ -87,6 +122,7 @@ classdef BVR_RCS < handle
         %------------------------------------------------------------------
         function txt = getStatusMeaning(status)
             switch status
+                % this come from the .c file
                 case -1, txt = 'STATUS_FREE';
                 case  0, txt = 'STATUS_NOCONNECT';
                 case  1, txt = 'STATUS_TCP_SOCKET';
@@ -103,9 +139,14 @@ classdef BVR_RCS < handle
         end
         
         %------------------------------------------------------------------
+        % logging
         function log(msg)
             fprintf('[%s - %s]: %s\n', mfilename, datestr(now), msg)
         end
+        function error(msg)
+            error('[%s - %s]: %s\n', mfilename, datestr(now), msg)
+        end
+        
     end % meths
     
 end % class
