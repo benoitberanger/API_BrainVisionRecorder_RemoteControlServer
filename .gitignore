@@ -4,6 +4,9 @@
 *.fig
 *.mat
 
+# local stuff
+test/*
+
 # Octave
 octave-workspace
 
