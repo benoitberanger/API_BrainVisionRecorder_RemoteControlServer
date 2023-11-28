@@ -60,10 +60,47 @@ rc.closeAll()
 ```
 
 
+# GUI
+
+![readme_figures/gui.png](readme_figures/gui.png)  
+**There are tooltips on graphic elements : place your mouse cursor over it.**
+
+In the exemples bellow `rc` is the object associted with the GUI, freshly created by `openGUI()` static method
+
+## Standalone
+```matlab
+BVR_RCS.openGUI()
+
+% OR
+
+rc = BVR_RCS.openGUI()
+
+% OR
+
+[rc, guihandles] = BVR_RCS.openGUI()
+```
+
+## Embeded in a _container_
+```matlab
+% containter = figure OR axes OR uipanel
+container = uipanel()
+
+BVR_RCS.openGUI(container)
+
+% OR
+
+rc = BVR_RCS.openGUI(container)
+
+% OR
+
+[rc, guihandles] = BVR_RCS.openGUI(container)
+```
+
+
 # Limitations
 
 Some RCS commandes **not** programmed in this API, in particular the comandes whith variable returned message size.
 
 
 # MATLAB version
-Even old versions shoud work, as long as they have object oriented capabilities (R2007 ?)
+Even old versions shoud work, as long as they have object oriented capabilities (R2011+ ?)
