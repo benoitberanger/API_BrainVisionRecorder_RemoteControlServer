@@ -69,15 +69,7 @@ In the exemples bellow `rc` is the object associted with the GUI, freshly create
 
 ## Standalone
 ```matlab
-BVR_RCS.openGUI()
-
-% OR
-
 rc = BVR_RCS.openGUI()
-
-% OR
-
-[rc, guihandles] = BVR_RCS.openGUI()
 ```
 
 ## Embeded in a _container_
@@ -85,15 +77,8 @@ rc = BVR_RCS.openGUI()
 % containter = figure OR axes OR uipanel
 container = uipanel()
 
-BVR_RCS.openGUI(container)
-
-% OR
 
 rc = BVR_RCS.openGUI(container)
-
-% OR
-
-[rc, guihandles] = BVR_RCS.openGUI(container)
 ```
 
 

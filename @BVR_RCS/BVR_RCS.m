@@ -11,7 +11,7 @@ classdef BVR_RCS < handle
         con              double = -1
         statusID         double
         statusMSG        char
-        
+
         ui                                                                 % it will contain all UI elements
     end % props
 
@@ -260,12 +260,12 @@ classdef BVR_RCS < handle
                 new_fig = 0;
 
             end
-            
+
             % Create instance and store it in the gui data
             RC = BVR_RCS();
-            
+
             RC.ui.container = container;
-            
+
             figureBGcolor = [0.9 0.9 0.9];
             buttonBGcolor = figureBGcolor - 0.1;
             buttonOK      = buttonBGcolor .* [0.8 1.0 0.8];
@@ -444,7 +444,7 @@ classdef BVR_RCS < handle
         end % fcn
 
     end % meths
-    
+
     %======================================================================
     %======================================================================
     methods(Access=protected)
