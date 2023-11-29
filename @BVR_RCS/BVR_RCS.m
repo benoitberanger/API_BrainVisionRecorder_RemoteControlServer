@@ -11,6 +11,8 @@ classdef BVR_RCS < handle
         con              double = -1
         statusID         double
         statusMSG        char
+        
+        ui                                                                 % it will contain all UI elements
     end % props
 
 
@@ -233,7 +235,7 @@ classdef BVR_RCS < handle
     %======================================================================
     methods(Static, Access=public)
 
-        function [rc, handles]= openGUI(container)
+        function RC = openGUI(container)
 
             % Create a fig or use a pre-existing container ----------------
 
@@ -258,7 +260,12 @@ classdef BVR_RCS < handle
                 new_fig = 0;
 
             end
-
+            
+            % Create instance and store it in the gui data
+            RC = BVR_RCS();
+            
+            RC.ui.container = container;
+            
             figureBGcolor = [0.9 0.9 0.9];
             buttonBGcolor = figureBGcolor - 0.1;
             buttonOK      = buttonBGcolor .* [0.8 1.0 0.8];
@@ -272,362 +279,300 @@ classdef BVR_RCS < handle
             end
 
             % Create GUI handles : pointers to access the graphic objects
-            handles               = guihandles(figHandle);
-            handles.figureBGcolor = figureBGcolor;
-            handles.buttonBGcolor = buttonBGcolor;
-            handles.buttonOK      = buttonOK;
-            handles.buttonKO      = buttonKO;
-            handles.editOK        = editOK;
-            handles.editKO        = editKO;
-
-            % Create instance and store it in the gui data
-            handles.RC = BVR_RCS();
+            RC.ui.figureBGcolor = figureBGcolor;
+            RC.ui.buttonBGcolor = buttonBGcolor;
+            RC.ui.buttonOK      = buttonOK;
+            RC.ui.buttonKO      = buttonKO;
+            RC.ui.editOK        = editOK;
+            RC.ui.editKO        = editKO;
 
             % Prepare pannels ---------------------------------------------
 
-            handles.panel_setup = uipanel(container, ...
+            RC.ui.panel_setup = uipanel(container, ...
                 'Title', 'Setup', ...
                 'BackgroundColor',figureBGcolor, ...
                 'Units', 'Normalized', ....
                 'Position', [0 0 0.5 1] ...
                 );
 
-            handles.panel_send = uipanel(container, ...
+            RC.ui.panel_send = uipanel(container, ...
                 'Title', 'Send messages', ...
                 'BackgroundColor',figureBGcolor, ...
                 'Units', 'normalized', ....
-                'Position', [handles.panel_setup.Position(1)+handles.panel_setup.Position(3) 0 1-handles.panel_setup.Position(3) 1] ...
+                'Position', [RC.ui.panel_setup.Position(1)+RC.ui.panel_setup.Position(3) 0 1-RC.ui.panel_setup.Position(3) 1] ...
                 );
 
             % Fill setup pannel -------------------------------------------
 
-            handles.edit_ip = uicontrol(handles.panel_setup,...
+            RC.ui.edit_ip = uicontrol(RC.ui.panel_setup,...
                 'Style','edit',...
                 'BackgroundColor',editBGcolor,...
                 'Units','normalized',...
                 'Position',[0 0.75 0.75 0.25],...
                 'String', '127.0.0.1',...
                 'Tooltip','IP adress',...
-                'Callback', @cb_edit_ip);
-            handles.edit_port = uicontrol(handles.panel_setup,...
+                'Callback', @RC.cb_edit_ip);
+            RC.ui.edit_port = uicontrol(RC.ui.panel_setup,...
                 'Style','edit',...
                 'BackgroundColor',editBGcolor,...
                 'Units','normalized',...
                 'Position',[0.75 0.75 0.25 0.25],...
                 'String', '6700',...
                 'Tooltip','port',...
-                'Callback',@cb_edit_port);
+                'Callback',@RC.cb_edit_port);
 
-            handles.pushbutton_connect = uicontrol(handles.panel_setup,...
+            RC.ui.pushbutton_connect = uicontrol(RC.ui.panel_setup,...
                 'Style','pushbutton',...
                 'BackgroundColor',buttonKO,...
                 'Units','normalized',...
                 'Position',[0 0.5 0.5 0.25],...
                 'String', 'Connect',...
                 'Tooltip','Open TCP/IP connection using `pnet`',...
-                'Callback', @cb_pushbutton_connect);
-            handles.pushbutton_close = uicontrol(handles.panel_setup,...
+                'Callback', @RC.cb_pushbutton_connect);
+            RC.ui.pushbutton_close = uicontrol(RC.ui.panel_setup,...
                 'Style','pushbutton',...
                 'BackgroundColor',buttonBGcolor,...
                 'Units','normalized',...
                 'Position',[0.5 0.5 0.5 0.25],...
                 'String', 'Close',...
                 'Tooltip','Close TCP/IP connection',...
-                'Callback', @cb_pushbutton_close);
+                'Callback', @RC.cb_pushbutton_close);
 
-            handles.edit_experimentnumber = uicontrol(handles.panel_setup,...
+            RC.ui.edit_experimentnumber = uicontrol(RC.ui.panel_setup,...
                 'Style','edit',...
                 'BackgroundColor',editKO,...
                 'Units','normalized',...
                 'Position',[0 0.25 0.5 0.25],...
                 'String', '',...
                 'Tooltip','Experiment Number',...
-                'Callback', @cb_edit_experimentnumber);
-            handles.edit_subjectid = uicontrol(handles.panel_setup,...
+                'Callback', @RC.cb_edit_experimentnumber);
+            RC.ui.edit_subjectid = uicontrol(RC.ui.panel_setup,...
                 'Style','edit',...
                 'BackgroundColor',editKO,...
                 'Units','normalized',...
                 'Position',[0.5 0.25 0.5 0.25],...
                 'String', '',...
                 'Tooltip','Subject ID',...
-                'Callback', @cb_edit_subjectid);
+                'Callback', @RC.cb_edit_subjectid);
 
-            handles.pushbutton_overriteON = uicontrol(handles.panel_setup,...
+            RC.ui.pushbutton_overriteON = uicontrol(RC.ui.panel_setup,...
                 'Style','pushbutton',...
                 'BackgroundColor',buttonBGcolor,...
                 'Units','normalized',...
                 'Position',[0 0 0.5 0.25],...
                 'String', 'Overwrite ON',...
                 'Tooltip','Allow to overwrite files',...
-                'Callback', @cb_pushbutton_overwriteON);
-            handles.pushbutton_overriteOFF = uicontrol(handles.panel_setup,...
+                'Callback', @RC.cb_pushbutton_overwriteON);
+            RC.ui.pushbutton_overriteOFF = uicontrol(RC.ui.panel_setup,...
                 'Style','pushbutton',...
                 'BackgroundColor',buttonBGcolor,...
                 'Units','normalized',...
                 'Position',[0.5 0 0.5 0.25],...
                 'String', 'Overwrite OFF',...
                 'Tooltip','Do NOT to allow to overwrite files',...
-                'Callback', @cb_pushbutton_overwriteOFF);
+                'Callback', @RC.cb_pushbutton_overwriteOFF);
 
             % Fill send pannel --------------------------------------------
 
-            handles.pushbutton_getstatus = uicontrol(handles.panel_send,...
+            RC.ui.pushbutton_getstatus = uicontrol(RC.ui.panel_send,...
                 'Style','pushbutton',...
                 'BackgroundColor',buttonBGcolor,...
                 'Units','normalized',...
                 'Position',[0 0.8 1 0.20],...
                 'String', 'Get Status',...
                 'Tooltip','Get connection status',...
-                'Callback', @cb_pushbutton_getstatus);
+                'Callback', @RC.cb_pushbutton_getstatus);
 
-            handles.pushbutton_monitoring = uicontrol(handles.panel_send,...
+            RC.ui.pushbutton_monitoring = uicontrol(RC.ui.panel_send,...
                 'Style','pushbutton',...
                 'BackgroundColor',buttonBGcolor,...
                 'Units','normalized',...
                 'Position',[0 0.6 1 0.2],...
                 'String', 'Start/Check monitoring',...
                 'Tooltip','Start (or check) that BVR is in Monitoring mode, ready to start record',...
-                'Callback', @cb_pushbutton_monitoring);
+                'Callback', @RC.cb_pushbutton_monitoring);
 
-            handles.pushbutton_startrecording = uicontrol(handles.panel_send,...
+            RC.ui.pushbutton_startrecording = uicontrol(RC.ui.panel_send,...
                 'Style','pushbutton',...
                 'BackgroundColor',buttonBGcolor,...
                 'Units','normalized',...
                 'Position',[0 0.4 0.5 0.2],...
                 'String', 'Start recording',...
                 'Tooltip','',...
-                'Callback', @cb_pushbutton_startrecording);
-            handles.pushbutton_stoprecording = uicontrol(handles.panel_send,...
+                'Callback', @RC.cb_pushbutton_startrecording);
+            RC.ui.pushbutton_stoprecording = uicontrol(RC.ui.panel_send,...
                 'Style','pushbutton',...
                 'BackgroundColor',buttonBGcolor,...
                 'Units','normalized',...
                 'Position',[0.5 0.4 0.5 0.2],...
                 'String', 'Stop recording',...
                 'Tooltip','',...
-                'Callback', @cb_pushbutton_stoprecording);
+                'Callback', @RC.cb_pushbutton_stoprecording);
 
-            handles.pushbutton_pauserecording = uicontrol(handles.panel_send,...
+            RC.ui.pushbutton_pauserecording = uicontrol(RC.ui.panel_send,...
                 'Style','pushbutton',...
                 'BackgroundColor',buttonBGcolor,...
                 'Units','normalized',...
                 'Position',[0 0.2 0.5 0.2],...
                 'String', 'Pause recording',...
                 'Tooltip','',...
-                'Callback', @cb_pushbutton_pauserecording);
-            handles.pushbutton_continuerecording = uicontrol(handles.panel_send,...
+                'Callback', @RC.cb_pushbutton_pauserecording);
+            RC.ui.pushbutton_continuerecording = uicontrol(RC.ui.panel_send,...
                 'Style','pushbutton',...
                 'BackgroundColor',buttonBGcolor,...
                 'Units','normalized',...
                 'Position',[0.5 0.2 0.5 0.2],...
                 'String', 'Continue recording',...
                 'Tooltip','',...
-                'Callback', @cb_pushbutton_continuerecording);
+                'Callback', @RC.cb_pushbutton_continuerecording);
 
-            handles.edit_annotation = uicontrol(handles.panel_send,...
+            RC.ui.edit_annotation = uicontrol(RC.ui.panel_send,...
                 'Style','edit',...
                 'BackgroundColor',editBGcolor,...
                 'Units','normalized',...
                 'Position',[0 0 1 0.25],...
                 'String', '',...
                 'Tooltip','Annotation : write `description:type` and press ENTER',...
-                'Callback', @cb_edit_annotate);
+                'Callback', @RC.cb_edit_annotate);
 
             % End of opening ----------------------------------------------
 
-            % IMPORTANT
-            guidata(figHandle,handles)
-            % After creating the figure, dont forget the line
-            % guidata(figHandle,handles) . It allows smart retrive like
-            % handles=guidata(hObject)
-
             % call all callback once to check the default values
-            cb_edit_ip(handles.edit_ip)
-            cb_edit_port(handles.edit_port)
-
-            % output
-            handles = guidata(figHandle);
-            rc = handles.RC;
+            RC.cb_edit_ip(RC.ui.edit_ip)
+            RC.cb_edit_port(RC.ui.edit_port)
 
         end % fcn
 
     end % meths
+    
+    %======================================================================
+    %======================================================================
+    methods(Access=protected)
+
+        %------------------------------------------------------------------
+        function cb_edit_ip(self, ui,~)
+            new_value = ui.String;
+            try
+                self.setRecorderIP(new_value)
+                ui.BackgroundColor = self.ui.editOK;
+            catch ME
+                ui.BackgroundColor = self.ui.editKO;
+                rethrow(ME)
+            end
+        end
+        function cb_edit_port(self, ui,~)
+            new_value = ui.String;
+            try
+                self.setPort(str2double(new_value))
+                ui.BackgroundColor = self.ui.editOK;
+            catch ME
+                ui.BackgroundColor = self.ui.editKO;
+                rethrow(ME)
+            end
+        end
+
+        %------------------------------------------------------------------
+        function cb_pushbutton_connect(self, ui, ~)
+            try
+                self.tcpConnect();
+                ui                      .BackgroundColor = self.ui.buttonOK;
+                self.ui.pushbutton_close.BackgroundColor = self.ui.buttonKO;
+            catch ME
+                ui                      .BackgroundColor = self.ui.buttonKO;
+                self.ui.pushbutton_close.BackgroundColor = self.ui.buttonOK;
+                rethrow(ME)
+            end
+        end
+        function cb_pushbutton_close(self, ui, ~)
+            try
+                self.closeAll();
+                ui                        .BackgroundColor = self.ui.buttonOK;
+                self.ui.pushbutton_connect.BackgroundColor = self.ui.buttonKO;
+            catch ME
+                ui                        .BackgroundColor = self.ui.buttonKO;
+                self.ui.pushbutton_connect.BackgroundColor = self.ui.buttonOK;
+                rethrow(ME)
+            end
+        end
+
+        %------------------------------------------------------------------
+        function cb_edit_experimentnumber(self, ui,~)
+            new_value = ui.String;
+            try
+                self.sendExperimentNumber(new_value)
+                ui.BackgroundColor = self.ui.editOK;
+            catch ME
+                ui.BackgroundColor = self.ui.editKO;
+                rethrow(ME)
+            end
+        end
+        function cb_edit_subjectid(self, ui,~)
+            new_value = ui.String;
+            try
+                self.sendSubjectID(new_value)
+                ui.BackgroundColor = self.ui.editOK;
+            catch ME
+                ui.BackgroundColor = self.ui.editKO;
+                rethrow(ME)
+            end
+        end
+
+        %------------------------------------------------------------------
+        function cb_pushbutton_overwriteON(self, ui, ~)
+            try
+                self.sendOverwriteON();
+                ui                            .BackgroundColor = self.ui.buttonOK;
+                self.ui.pushbutton_overriteOFF.BackgroundColor = self.ui.buttonKO;
+            catch ME
+                ui                            .BackgroundColor = self.ui.buttonKO;
+                self.ui.pushbutton_overriteOFF.BackgroundColor = self.ui.buttonKO;
+                rethrow(ME)
+            end
+        end
+        function cb_pushbutton_overwriteOFF(self, ui, ~)
+            try
+                self.sendOverwriteOFF();
+                ui                           .BackgroundColor = self.ui.buttonOK;
+                self.ui.pushbutton_overriteON.BackgroundColor = self.ui.buttonKO;
+            catch ME
+                ui                           .BackgroundColor = self.ui.buttonKO;
+                self.ui.pushbutton_overriteON.BackgroundColor = self.ui.buttonKO;
+                rethrow(ME)
+            end
+        end
+
+        %------------------------------------------------------------------
+        function cb_pushbutton_getstatus(self, ~, ~)
+            self.getStatus(true);
+        end
+
+        %------------------------------------------------------------------
+        function cb_pushbutton_monitoring(self, ~, ~)
+            self.sendMonitoring();
+        end
+
+        %------------------------------------------------------------------
+        function cb_pushbutton_startrecording(self, ~, ~)
+            self.sendStartRecording();
+        end
+        function cb_pushbutton_stoprecording(self, ~, ~)
+            self.sendStopRecording();
+        end
+
+        %------------------------------------------------------------------
+        function cb_pushbutton_pauserecording(self, ~, ~)
+            self.sendPauseRecording();
+        end
+        function cb_pushbutton_continuerecording(self, ~, ~)
+            self.sendContinueRecording();
+        end
+
+        %------------------------------------------------------------------
+        function cb_edit_annotate(self, ui,~)
+            split = strsplit(ui.String,':');
+            self.sendAnnotation(split{:})
+        end
+
+    end % meths
 
 end % class
-
-
-%==========================================================================
-%==========================================================================
-%==========================================================================
-
-%--------------------------------------------------------------------------
-function cb_edit_ip(hObject,~)
-handles = guidata(hObject); % retrieve guidata
-new_value = hObject.String;
-try
-    handles.RC.setRecorderIP(new_value)
-    hObject.BackgroundColor = handles.editOK;
-catch ME
-    hObject.BackgroundColor = handles.editKO;
-    rethrow(ME)
-end
-end
-%--------------------------------------------------------------------------
-function cb_edit_port(hObject,~)
-handles = guidata(hObject);
-new_value = hObject.String;
-try
-    handles.RC.setPort(str2double(new_value))
-    hObject.BackgroundColor = handles.editOK;
-catch ME
-    hObject.BackgroundColor = handles.editKO;
-    rethrow(ME)
-end
-end
-
-%--------------------------------------------------------------------------
-function cb_pushbutton_connect(hObject, ~)
-handles = guidata(hObject);
-try
-    handles.RC.tcpConnect();
-    hObject                 .BackgroundColor = handles.buttonOK;
-    handles.pushbutton_close.BackgroundColor = handles.buttonKO;
-catch ME
-    hObject                 .BackgroundColor = handles.buttonKO;
-    handles.pushbutton_close.BackgroundColor = handles.buttonOK;
-    rethrow(ME)
-end
-end
-%--------------------------------------------------------------------------
-function cb_pushbutton_close(hObject, ~)
-handles = guidata(hObject);
-try
-    handles.RC.closeAll();
-    hObject                   .BackgroundColor = handles.buttonOK;
-    handles.pushbutton_connect.BackgroundColor = handles.buttonKO;
-catch ME
-    hObject                   .BackgroundColor = handles.buttonKO;
-    handles.pushbutton_connect.BackgroundColor = handles.buttonOK;
-    rethrow(ME)
-end
-end
-
-%--------------------------------------------------------------------------
-function cb_edit_experimentnumber(hObject,~)
-handles = guidata(hObject);
-new_value = hObject.String;
-try
-    handles.RC.sendExperimentNumber(new_value)
-    hObject.BackgroundColor = handles.editOK;
-catch ME
-    hObject.BackgroundColor = handles.editKO;
-    rethrow(ME)
-end
-end
-%--------------------------------------------------------------------------
-function cb_edit_subjectid(hObject,~)
-handles = guidata(hObject);
-new_value = hObject.String;
-try
-    handles.RC.sendSubjectID(new_value)
-    hObject.BackgroundColor = handles.editOK;
-catch ME
-    hObject.BackgroundColor = handles.editKO;
-    rethrow(ME)
-end
-end
-
-%--------------------------------------------------------------------------
-function cb_pushbutton_overwriteON(hObject, ~)
-handles = guidata(hObject);
-try
-    handles.RC.sendOverwriteON();
-    hObject                       .BackgroundColor = handles.buttonOK;
-    handles.pushbutton_overriteOFF.BackgroundColor = handles.buttonKO;
-catch ME
-    hObject                       .BackgroundColor = handles.buttonKO;
-    handles.pushbutton_overriteOFF.BackgroundColor = handles.buttonKO;
-    rethrow(ME)
-end
-end
-%--------------------------------------------------------------------------
-function cb_pushbutton_overwriteOFF(hObject, ~)
-handles = guidata(hObject);
-try
-    handles.RC.sendOverwriteOFF();
-    hObject                      .BackgroundColor = handles.buttonOK;
-    handles.pushbutton_overriteON.BackgroundColor = handles.buttonKO;
-catch ME
-    hObject                      .BackgroundColor = handles.buttonKO;
-    handles.pushbutton_overriteON.BackgroundColor = handles.buttonKO;
-    rethrow(ME)
-end
-end
-
-%--------------------------------------------------------------------------
-function cb_pushbutton_getstatus(hObject, ~)
-handles = guidata(hObject);
-try
-    handles.RC.getStatus(true);
-catch ME
-    rethrow(ME)
-end
-end
-
-%--------------------------------------------------------------------------
-function cb_pushbutton_monitoring(hObject, ~)
-handles = guidata(hObject);
-try
-    handles.RC.sendMonitoring();
-catch ME
-    rethrow(ME)
-end
-end
-
-%--------------------------------------------------------------------------
-function cb_pushbutton_startrecording(hObject, ~)
-handles = guidata(hObject);
-try
-    handles.RC.sendStartRecording();
-catch ME
-    rethrow(ME)
-end
-end
-%--------------------------------------------------------------------------
-function cb_pushbutton_stoprecording(hObject, ~)
-handles = guidata(hObject);
-try
-    handles.RC.sendStopRecording();
-catch ME
-    rethrow(ME)
-end
-end
-
-%--------------------------------------------------------------------------
-function cb_pushbutton_pauserecording(hObject, ~)
-handles = guidata(hObject);
-try
-    handles.RC.sendPauseRecording();
-catch ME
-    rethrow(ME)
-end
-end
-%--------------------------------------------------------------------------
-function cb_pushbutton_continuerecording(hObject, ~)
-handles = guidata(hObject);
-try
-    handles.RC.sendContinueRecording();
-catch ME
-    rethrow(ME)
-end
-end
-
-%--------------------------------------------------------------------------
-function cb_edit_annotate(hObject,~)
-handles = guidata(hObject);
-try
-    split = strsplit(hObject.String,':');
-    handles.RC.sendAnnotation(split{:})
-catch ME
-    rethrow(ME)
-end
-end
