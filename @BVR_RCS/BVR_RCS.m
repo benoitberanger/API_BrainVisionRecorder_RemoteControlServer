@@ -335,22 +335,22 @@ classdef BVR_RCS < handle
                 'Tooltip','Close TCP/IP connection',...
                 'Callback', @cb_pushbutton_close);
 
-            handles.edit_subjectid = uicontrol(handles.panel_setup,...
+            handles.edit_experimentnumber = uicontrol(handles.panel_setup,...
                 'Style','edit',...
                 'BackgroundColor',editKO,...
                 'Units','normalized',...
                 'Position',[0 0.25 0.5 0.25],...
                 'String', '',...
-                'Tooltip','Subject ID',...
-                'Callback', @cb_edit_subjectid);
-            handles.edit_experimentnumber = uicontrol(handles.panel_setup,...
+                'Tooltip','Experiment Number',...
+                'Callback', @cb_edit_experimentnumber);
+            handles.edit_subjectid = uicontrol(handles.panel_setup,...
                 'Style','edit',...
                 'BackgroundColor',editKO,...
                 'Units','normalized',...
                 'Position',[0.5 0.25 0.5 0.25],...
                 'String', '',...
-                'Tooltip','Experiment Number',...
-                'Callback', @cb_edit_experimentnumber);
+                'Tooltip','Subject ID',...
+                'Callback', @cb_edit_subjectid);
 
             handles.pushbutton_overriteON = uicontrol(handles.panel_setup,...
                 'Style','pushbutton',...
@@ -489,24 +489,34 @@ function cb_pushbutton_connect(hObject, ~)
 handles = guidata(hObject);
 try
     handles.RC.tcpConnect();
-    hObject.BackgroundColor = handles.buttonOK;
+    hObject                 .BackgroundColor = handles.buttonOK;
+    handles.pushbutton_close.BackgroundColor = handles.buttonKO;
 catch ME
-    hObject.BackgroundColor = handles.buttonKO;
+    hObject                 .BackgroundColor = handles.buttonKO;
+    handles.pushbutton_close.BackgroundColor = handles.buttonOK;
     rethrow(ME)
 end
 end
 %--------------------------------------------------------------------------
 function cb_pushbutton_close(hObject, ~)
 handles = guidata(hObject);
-handles.RC.closeAll();
+try
+    handles.RC.closeAll();
+    hObject                   .BackgroundColor = handles.buttonOK;
+    handles.pushbutton_connect.BackgroundColor = handles.buttonKO;
+catch ME
+    hObject                   .BackgroundColor = handles.buttonKO;
+    handles.pushbutton_connect.BackgroundColor = handles.buttonOK;
+    rethrow(ME)
+end
 end
 
 %--------------------------------------------------------------------------
-function cb_edit_subjectid(hObject,~)
+function cb_edit_experimentnumber(hObject,~)
 handles = guidata(hObject);
 new_value = hObject.String;
 try
-    handles.RC.sendSubjectID(new_value)
+    handles.RC.sendExperimentNumber(new_value)
     hObject.BackgroundColor = handles.editOK;
 catch ME
     hObject.BackgroundColor = handles.editKO;
@@ -514,11 +524,11 @@ catch ME
 end
 end
 %--------------------------------------------------------------------------
-function cb_edit_experimentnumber(hObject,~)
+function cb_edit_subjectid(hObject,~)
 handles = guidata(hObject);
 new_value = hObject.String;
 try
-    handles.RC.sendExperimentNumber(new_value)
+    handles.RC.sendSubjectID(new_value)
     hObject.BackgroundColor = handles.editOK;
 catch ME
     hObject.BackgroundColor = handles.editKO;
@@ -544,10 +554,10 @@ function cb_pushbutton_overwriteOFF(hObject, ~)
 handles = guidata(hObject);
 try
     handles.RC.sendOverwriteOFF();
-    hObject                       .BackgroundColor = handles.buttonOK;
+    hObject                      .BackgroundColor = handles.buttonOK;
     handles.pushbutton_overriteON.BackgroundColor = handles.buttonKO;
 catch ME
-    hObject                       .BackgroundColor = handles.buttonKO;
+    hObject                      .BackgroundColor = handles.buttonKO;
     handles.pushbutton_overriteON.BackgroundColor = handles.buttonKO;
     rethrow(ME)
 end
