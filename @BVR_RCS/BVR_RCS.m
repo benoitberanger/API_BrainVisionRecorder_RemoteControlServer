@@ -450,7 +450,7 @@ classdef BVR_RCS < handle
     methods(Access=protected)
 
         %------------------------------------------------------------------
-        function cb_edit_ip(self, ui,~)
+        function cb_edit_ip(self, ui, ~)
             new_value = ui.String;
             try
                 self.setRecorderIP(new_value)
@@ -460,7 +460,7 @@ classdef BVR_RCS < handle
                 rethrow(ME)
             end
         end
-        function cb_edit_port(self, ui,~)
+        function cb_edit_port(self, ui, ~)
             new_value = ui.String;
             try
                 self.setPort(str2double(new_value))
@@ -496,7 +496,7 @@ classdef BVR_RCS < handle
         end
 
         %------------------------------------------------------------------
-        function cb_edit_experimentnumber(self, ui,~)
+        function cb_edit_experimentnumber(self, ui, ~)
             new_value = ui.String;
             try
                 self.sendExperimentNumber(new_value)
